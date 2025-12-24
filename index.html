@@ -1,296 +1,354 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Christmas Animation</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+   <title>Giáng Sinh Ngôi Sao Lấp Lánh - Fast Burst</title>
+   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playball&display=swap" rel="stylesheet">
+   
+   <style>
+       body, html {
+           margin: 0; padding: 0; width: 100%; height: 100%;
+           overflow: hidden; background-color: #050505;
+           font-family: 'Arial', sans-serif;
+           touch-action: none;
+       }
 
-        body {
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
-            background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 50%, #0f2818 100%);
-            font-family: 'Arial', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+       #canvas-container {
+           position: absolute; top: 0; left: 0;
+           width: 100%; height: 100%; z-index: 0;
+       }
 
-        canvas {
-            display: block;
-            background: transparent;
-        }
+       .content {
+           position: absolute; bottom: 30px; left: 0; width: 100%;
+           text-align: center; z-index: 2; pointer-events: none;
+           padding-bottom: 20px;
+       }
 
-        .greeting-container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 10;
-            pointer-events: none;
-        }
+       h1 {
+           font-family: 'Great Vibes', cursive; font-size: 5.5rem; margin: 0;
+           line-height: 1.2; color: #f94e4e;
+           text-shadow: 0 0 10px #f94e4e, 2px 2px 2px #000;
+           animation: textFadeIn 4s ease-out forwards; opacity: 0;
+       }
 
-        .greeting-text {
-            font-size: 3.5rem;
-            font-weight: bold;
-            color: #ff6b6b;
-            text-shadow: 
-                0 0 10px rgba(255, 107, 107, 0.8),
-                0 0 20px rgba(255, 107, 107, 0.6),
-                2px 2px 4px rgba(0, 0, 0, 0.8);
-            margin-bottom: 20px;
-            animation: pulse 1.5s ease-in-out infinite;
-            letter-spacing: 2px;
-        }
+       p {
+           font-family: 'Playball', cursive; font-size: 2rem; margin-top: 5px;
+           color: #fff; text-shadow: 0 0 5px #fff;
+           animation: textFadeIn 5s ease-out forwards; opacity: 0;
+       }
 
-        .custom-name {
-            color: #ffd700;
-            text-shadow: 
-                0 0 10px rgba(255, 215, 0, 0.8),
-                0 0 20px rgba(255, 215, 0, 0.6),
-                2px 2px 4px rgba(0, 0, 0, 0.8);
-            font-style: italic;
-            font-weight: 900;
-        }
+       .custom-name {
+           color: #FFD700;
+           font-size: 2.5rem;
+           font-weight: bold;
+           text-shadow: 0 0 10px #FFD700, 0 0 20px #FFA500;
+       }
 
-        .subtitle {
-            font-size: 1.8rem;
-            color: #ffffff;
-            text-shadow: 
-                0 0 10px rgba(255, 255, 255, 0.8),
-                2px 2px 4px rgba(0, 0, 0, 0.8);
-            animation: float 3s ease-in-out infinite;
-        }
+       .guide-text {
+           position: absolute; top: 10px; width: 100%; text-align: center;
+           color: rgba(255, 255, 255, 0.2); font-family: sans-serif;
+           font-size: 0.8rem; pointer-events: none; z-index: 10;
+       }
 
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-            50% {
-                transform: scale(1.05);
-                opacity: 0.9;
-            }
-        }
+       @keyframes textFadeIn {
+           from { opacity: 0; transform: translateY(20px); }
+           to { opacity: 1; transform: translateY(0); }
+       }
 
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-
-        @keyframes twinkle {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.3;
-            }
-        }
-    </style>
+       @media (max-width: 768px) {
+           h1 { font-size: 3.5rem; }
+           p { font-size: 1.2rem; }
+           .content { bottom: 50px; }
+       }
+   </style>
 </head>
 <body>
-    <canvas id="christmasCanvas"></canvas>
-    
-    <div class="greeting-container">
-        <div class="greeting-text">
-            🎄 Merry Christmas<span id="nameDisplay" class="custom-name"></span>! 🎄
-        </div>
-        <div class="subtitle">✨ Wishing you joy and happiness ✨</div>
-    </div>
 
-    <script>
-        const canvas = document.getElementById('christmasCanvas');
-        const ctx = canvas.getContext('2d');
+   <canvas id="canvas-container"></canvas>
+   
+   <div class="content">
+       <h1>Merry Christmas</h1>
+       <p id="greeting-text">Quinna Chúc Bạn Giáng Sinh An Lành</p>
+   </div>
 
-        // Set canvas size
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+   <script>
+       // Đọc URL parameter để thay đổi tên
+       const urlParams = new URLSearchParams(window.location.search);
+       const customName = urlParams.get('name');
 
-        // Get custom name from URL parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        const customName = urlParams.get('customName');
-        
-        if (customName) {
-            document.getElementById('nameDisplay').textContent = `, ${customName}`;
-        } else {
-            document.getElementById('nameDisplay').textContent = '';
-        }
+       if (customName) {
+           const greetingElement = document.getElementById('greeting-text');
+           greetingElement.innerHTML = `Chúc <span class="custom-name">${customName}</span> Giáng Sinh An Lành`;
+       }
+   </script>
 
-        // Particle system for snow and decorative effects
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height - canvas.height;
-                this.size = Math.random() * 3 + 1;
-                this.speedY = Math.random() * 3 + 2;
-                this.speedX = Math.random() * 2 - 1;
-                this.opacity = Math.random() * 0.5 + 0.5;
-                this.type = Math.random() > 0.8 ? 'sparkle' : 'snow';
-            }
+   <script>
+       const canvas = document.getElementById('canvas-container');
+       const ctx = canvas.getContext('2d');
 
-            update() {
-                this.y += this.speedY;
-                this.x += this.speedX;
-                
-                // Wrap around screen
-                if (this.y > canvas.height) {
-                    this.y = -10;
-                    this.x = Math.random() * canvas.width;
-                }
-                
-                if (this.x > canvas.width) {
-                    this.x = 0;
-                } else if (this.x < 0) {
-                    this.x = canvas.width;
-                }
-            }
+       let width, height;
+       let particles = [];
+       let treeTargetPoints = [];
 
-            draw() {
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-                
-                if (this.type === 'sparkle') {
-                    // Draw sparkle/star
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    // Add glow effect
-                    ctx.fillStyle = `rgba(255, 255, 200, ${this.opacity * 0.5})`;
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size * 2, 0, Math.PI * 2);
-                    ctx.fill();
-                } else {
-                    // Draw snowflake
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            }
-        }
+       let mouse = { x: 0, y: 0, isDown: false };
 
-        // Create particles
-        const particles = [];
-        const particleCount = 150;
-        
-        for (let i = 0; i < particleCount; i++) {
-            particles.push(new Particle());
-        }
+       function handleStart(x, y) { mouse.isDown = true; mouse.x = x; mouse.y = y; }
+       function handleMove(x, y) { if(mouse.isDown) { mouse.x = x; mouse.y = y; } }
+       function handleEnd() { mouse.isDown = false; }
 
-        // Draw ornaments and decorations
-        function drawOrnament(x, y, radius, color) {
-            // Main sphere
-            const gradient = ctx.createRadialGradient(x - radius/3, y - radius/3, 0, x, y, radius);
-            gradient.addColorStop(0, '#ffffff');
-            gradient.addColorStop(0.5, color);
-            gradient.addColorStop(1, '#000000');
-            
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Highlight
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-            ctx.beginPath();
-            ctx.arc(x - radius/4, y - radius/4, radius/3, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Top cap
-            ctx.fillStyle = '#d4af37';
-            ctx.beginPath();
-            ctx.arc(x, y - radius - 5, radius/4, 0, Math.PI * 2);
-            ctx.fill();
-        }
+       canvas.addEventListener('mousedown', e => handleStart(e.clientX, e.clientY));
+       window.addEventListener('mousemove', e => handleMove(e.clientX, e.clientY));
+       window.addEventListener('mouseup', handleEnd);
 
-        // Draw stars
-        function drawStar(x, y, size, color) {
-            ctx.save();
-            ctx.translate(x, y);
-            ctx.fillStyle = color;
-            
-            ctx.beginPath();
-            for (let i = 0; i < 5; i++) {
-                const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
-                const px = Math.cos(angle) * size;
-                const py = Math.sin(angle) * size;
-                
-                if (i === 0) {
-                    ctx.moveTo(px, py);
-                } else {
-                    ctx.lineTo(px, py);
-                }
-                
-                const innerAngle = angle + (2 * Math.PI) / 10;
-                const innerX = Math.cos(innerAngle) * (size / 2);
-                const innerY = Math.sin(innerAngle) * (size / 2);
-                ctx.lineTo(innerX, innerY);
-            }
-            ctx.closePath();
-            ctx.fill();
-            ctx.restore();
-        }
+       canvas.addEventListener('touchstart', e => handleStart(e.touches[0].clientX, e.touches[0].clientY), {passive: false});
+       window.addEventListener('touchmove', e => {
+           e.preventDefault();
+           handleMove(e.touches[0].clientX, e.touches[0].clientY);
+       }, {passive: false});
+       window.addEventListener('touchend', handleEnd);
 
-        // Animation loop
-        let animationTime = 0;
-        
-        function animate() {
-            // Clear canvas with semi-transparent background for trailing effect
-            ctx.fillStyle = 'rgba(26, 71, 42, 0.1)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Update and draw particles
-            for (let i = 0; i < particles.length; i++) {
-                particles[i].update();
-                particles[i].draw();
-            }
+       function resize() {
+           width = canvas.width = window.innerWidth;
+           height = canvas.height = window.innerHeight;
+           init();
+       }
 
-            // Draw decorative ornaments in the background
-            const ornamentPositions = [
-                { x: canvas.width * 0.2, y: canvas.height * 0.2, size: 30, color: '#ff0000' },
-                { x: canvas.width * 0.8, y: canvas.height * 0.3, size: 25, color: '#00ff00' },
-                { x: canvas.width * 0.15, y: canvas.height * 0.7, size: 35, color: '#0066ff' },
-                { x: canvas.width * 0.85, y: canvas.height * 0.75, size: 28, color: '#ff00ff' },
-                { x: canvas.width * 0.5, y: canvas.height * 0.1, size: 32, color: '#ffff00' },
-            ];
+       function generateTreePoints() {
+           treeTargetPoints = [];
+           const centerX = width / 2;
+           const startY = height * 0.18;
+           const treeHeight = height * 0.58;
+           const endY = startY + treeHeight;
 
-            ornamentPositions.forEach(pos => {
-                ctx.globalAlpha = 0.3 + 0.2 * Math.sin(animationTime * 0.02 + pos.x);
-                drawOrnament(pos.x, pos.y, pos.size, pos.color);
-            });
+           // Thân cây
+           for(let i = 0; i < 120; i++) {
+               treeTargetPoints.push({ x: centerX + (Math.random() - 0.5) * 50, y: endY + Math.random() * 60, color: '#8B4513' });
+           }
+           
+           // Tán lá
+           const levels = 1600;
+           for (let i = 0; i < levels; i++) {
+               const t = i / levels;
+               const y = startY + (t * treeHeight);
+               const spread = Math.pow(t, 0.8) * (treeHeight * 0.6);
+               const x = centerX + (Math.random() - 0.5) * spread * 2;
+               let color = '#2ecc71';
+               const r = Math.random();
+               if (r > 0.90) color = '#f1c40f'; else if (r > 0.96) color = '#e74c3c'; else if (r > 0.98) color = '#ffffff';
+               treeTargetPoints.push({ x, y, color });
+           }
 
-            // Draw stars
-            ctx.globalAlpha = 0.5 + 0.3 * Math.sin(animationTime * 0.015);
-            drawStar(canvas.width * 0.5, canvas.height * 0.15, 40, '#ffd700');
-            
-            ctx.globalAlpha = 0.3 + 0.2 * Math.sin(animationTime * 0.02);
-            drawStar(canvas.width * 0.1, canvas.height * 0.35, 20, '#ffff00');
-            drawStar(canvas.width * 0.9, canvas.height * 0.55, 18, '#ffff00');
+           // Ngôi sao
+           const starCenterX = centerX;
+           const starCenterY = startY - 50;
+           const outerRadius = 55;
+           const innerRadius = 22;
+           const points = 5;
+           
+           for (let i = 0; i < points * 2; i++) {
+               const angle = (Math.PI / points) * i - Math.PI / 2;
+               const radius = i % 2 === 0 ? outerRadius : innerRadius;
+               const targetX = starCenterX + Math.cos(angle) * radius;
+               const targetY = starCenterY + Math.sin(angle) * radius;
 
-            ctx.globalAlpha = 1;
+               const particlesPerRay = 18;
+               for (let j = 0; j < particlesPerRay; j++) {
+                   const t = j / particlesPerRay;
+                   const x = starCenterX * (1-t) + targetX * t;
+                   const y = starCenterY * (1-t) + targetY * t;
+                   let color = t < 0.3 ? '#ffffff' : (t < 0.6 ? '#fffac2' : '#FFD700');
+                   treeTargetPoints.push({
+                       x: x + (Math.random() - 0.5) * 6,
+                       y: y + (Math.random() - 0.5) * 6,
+                       color: color,
+                       isStar: true
+                   });
+               }
+           }
+       }
 
-            animationTime++;
-            requestAnimationFrame(animate);
-        }
+       class Particle {
+           constructor(target) {
+               this.targetX = target.x;
+               this.targetY = target.y;
+               this.color = target.color;
+               this.isStar = target.isStar || false;
 
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
+               this.x = Math.random() * width;
+               this.y = height + 20;
+               
+               this.baseSize = this.isStar ? Math.random() * 3 + 3 : Math.random() * 2 + 1;
+               this.size = this.baseSize;
 
-        // Start animation
-        animate();
-    </script>
+               this.ease = 0.02 + Math.random() * 0.02;
+               
+               // Mở rộng phạm vi nổ ra 1.5 lần màn hình để hạt bay "vút" qua màn hình nhanh hơn
+               this.explodeX = (Math.random() * width * 1.5) - (width * 0.25);
+               this.explodeY = (Math.random() * height * 1.5) - (height * 0.25);
+
+               if (this.isStar) {
+                   this.twinkleAngle = Math.random() * Math.PI * 2;
+                   this.twinkleSpeed = 0.03 + Math.random() * 0.05;
+               }
+           }
+
+           update() {
+               let destX, destY, currentEase;
+
+               if (mouse.isDown) {
+                   // --- BUNG LỤA TỐC ĐỘ CAO ---
+                   destX = this.explodeX;
+                   destY = this.explodeY;
+                   
+                   // Tăng tốc độ bay lên 0.2 (Rất nhanh)
+                   // Cộng thêm chút random để hạt bay không đều, nhìn tự nhiên hơn
+                   currentEase = 0.2 + Math.random() * 0.05;
+               } else {
+                   // --- HỘI TỤ VỀ CÂY ---
+                   destX = this.targetX;
+                   destY = this.targetY;
+                   currentEase = this.ease;
+               }
+
+               this.x += (destX - this.x) * currentEase;
+               this.y += (destY - this.y) * currentEase;
+
+               if (!mouse.isDown && Math.abs(destX - this.x) < 2) {
+                    this.x += (Math.random() - 0.5) * 0.8;
+                    this.y += (Math.random() - 0.5) * 0.8;
+               }
+
+               if (this.isStar) {
+                   this.twinkleAngle += this.twinkleSpeed;
+                   this.size = this.baseSize * (1 + Math.sin(this.twinkleAngle) * 0.3);
+               }
+           }
+
+           draw() {
+               ctx.beginPath();
+               ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+               ctx.fillStyle = this.color;
+               
+               if (mouse.isDown) {
+                    ctx.shadowBlur = 0; // Tắt blur khi bay nhanh để tối ưu hiệu năng và nét hơn
+               } else if (this.isStar) {
+                   ctx.shadowBlur = 35;
+                   ctx.shadowColor = '#FFD700';
+               } else {
+                   ctx.shadowBlur = 0;
+               }
+               
+               ctx.fill();
+               ctx.shadowBlur = 0;
+           }
+       }
+
+       function init() {
+           generateTreePoints();
+           particles = [];
+           treeTargetPoints.forEach(target => {
+               particles.push(new Particle(target));
+           });
+       }
+
+       function animate() {
+           // Khi bay nhanh, làm mờ background nhanh hơn (0.25) để đuôi hạt không bị dài ngoằng lộn xộn
+           ctx.fillStyle = mouse.isDown ? 'rgba(5, 5, 5, 0.25)' : 'rgba(5, 5, 5, 0.25)';
+           ctx.fillRect(0, 0, width, height);
+
+           particles.forEach(p => {
+               p.update();
+               p.draw();
+           });
+
+           requestAnimationFrame(animate);
+       }
+
+       window.addEventListener('resize', resize);
+       resize();
+       animate();
+
+   </script>
+
+   <script>
+       // Hiệu ứng tuyết rơi
+       const snowCanvas = document.createElement('canvas');
+       snowCanvas.style.position = 'fixed';
+       snowCanvas.style.top = '0';
+       snowCanvas.style.left = '0';
+       snowCanvas.style.width = '100%';
+       snowCanvas.style.height = '100%';
+       snowCanvas.style.pointerEvents = 'none';
+       snowCanvas.style.zIndex = '5';
+       document.body.appendChild(snowCanvas);
+
+       const snowCtx = snowCanvas.getContext('2d');
+       let snowflakes = [];
+
+       function resizeSnowCanvas() {
+           snowCanvas.width = window.innerWidth;
+           snowCanvas.height = window.innerHeight;
+       }
+
+       class Snowflake {
+           constructor() {
+               this.x = Math.random() * snowCanvas.width;
+               this.y = Math.random() * snowCanvas.height - snowCanvas.height;
+               this.radius = Math.random() * 3 + 1;
+               this.speed = Math.random() * 1 + 0.5;
+               this.drift = Math.random() * 0.5 - 0.25;
+               this.opacity = Math.random() * 0.6 + 0.4;
+           }
+
+           update() {
+               this.y += this.speed;
+               this.x += this.drift;
+
+               if (this.y > snowCanvas.height) {
+                   this.y = -10;
+                   this.x = Math.random() * snowCanvas.width;
+               }
+
+               if (this.x > snowCanvas.width) {
+                   this.x = 0;
+               } else if (this.x < 0) {
+                   this.x = snowCanvas.width;
+               }
+           }
+
+           draw() {
+               snowCtx.beginPath();
+               snowCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+               snowCtx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+               snowCtx.fill();
+           }
+       }
+
+       function initSnow() {
+           snowflakes = [];
+           const numberOfSnowflakes = Math.min(150, Math.floor(snowCanvas.width / 10));
+           for (let i = 0; i < numberOfSnowflakes; i++) {
+               snowflakes.push(new Snowflake());
+           }
+       }
+
+       function animateSnow() {
+           snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+
+           snowflakes.forEach(flake => {
+               flake.update();
+               flake.draw();
+           });
+
+           requestAnimationFrame(animateSnow);
+       }
+
+       window.addEventListener('resize', resizeSnowCanvas);
+       resizeSnowCanvas();
+       initSnow();
+       animateSnow();
+   </script>
+
 </body>
 </html>
