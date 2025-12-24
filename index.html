@@ -1,268 +1,117 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-   <title>Giáng Sinh Ngôi Sao Lấp Lánh - Fast Burst</title>
-   <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playball&display=swap" rel="stylesheet">
-   
-   <style>
-       body, html {
-           margin: 0; padding: 0; width: 100%; height: 100%;
-           overflow: hidden; background-color: #050505;
-           font-family: 'Arial', sans-serif;
-           touch-action: none;
-       }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Christmas Greeting</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-       #canvas-container {
-           position: absolute; top: 0; left: 0;
-           width: 100%; height: 100%; z-index: 0;
-       }
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 50%, #0f2818 100%);
+            color: #fff;
+        }
 
-       .content {
-           position: absolute; bottom: 30px; left: 0; width: 100%;
-           text-align: center; z-index: 2; pointer-events: none;
-           padding-bottom: 20px;
-       }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-       h1 {
-           font-family: 'Great Vibes', cursive; font-size: 5.5rem; margin: 0;
-           line-height: 1.2; color: #d4af37;
-           text-shadow: 0 0 10px #d4af37, 2px 2px 2px #000;
-           animation: textFadeIn 4s ease-out forwards; opacity: 0;
-       }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
 
-       p {
-           font-family: 'Playball', cursive; font-size: 2rem; margin-top: 5px;
-           color: #fff; text-shadow: 0 0 5px #fff;
-           animation: textFadeIn 5s ease-out forwards; opacity: 0;
-       }
+        .greeting {
+            font-size: 2em;
+            margin: 20px 0;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
 
-       .guide-text {
-           position: absolute; top: 10px; width: 100%; text-align: center;
-           color: rgba(255, 255, 255, 0.2); font-family: sans-serif;
-           font-size: 0.8rem; pointer-events: none; z-index: 10;
-       }
+        .custom-name {
+            color: #FFD700;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8),
+                         0 0 20px rgba(255, 215, 0, 0.6),
+                         0 0 30px rgba(255, 215, 0, 0.4);
+            font-style: italic;
+            letter-spacing: 1px;
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background: rgba(255, 215, 0, 0.1);
+            transition: all 0.3s ease;
+        }
 
-       @keyframes textFadeIn {
-           from { opacity: 0; transform: translateY(20px); }
-           to { opacity: 1; transform: translateY(0); }
-       }
+        .custom-name:hover {
+            text-shadow: 0 0 15px rgba(255, 215, 0, 1),
+                         0 0 25px rgba(255, 215, 0, 0.8),
+                         0 0 35px rgba(255, 215, 0, 0.6);
+            background: rgba(255, 215, 0, 0.15);
+            transform: scale(1.05);
+        }
 
-       @media (max-width: 768px) {
-           h1 { font-size: 3.5rem; }
-           p { font-size: 1.2rem; }
-           .content { bottom: 50px; }
-       }
-   </style>
+        p {
+            font-size: 1.2em;
+            line-height: 1.8;
+            margin: 20px 0;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+    </style>
 </head>
 <body>
-
-   <canvas id="canvas-container"></canvas>
-   
-   <div class="content">
-       <h1>Merry Christmas</h1>
-       <p id="greeting-text">Quinna Chúc Bạn Giáng Sinh An Lành</p>
-   </div>
-
-   <script>
-       // Đọc URL parameter để thay đổi tên
-       const urlParams = new URLSearchParams(window.location.search);
-       const customName = urlParams.get('name');
-
-       if (customName) {
-           const greetingElement = document.getElementById('greeting-text');
-           greetingElement.textContent = `Chúc ${customName} Giáng Sinh An Lành`;
-       }
-   </script>
-
-   <script>
-       const canvas = document.getElementById('canvas-container');
-       const ctx = canvas.getContext('2d');
-
-       let width, height;
-       let particles = [];
-       let treeTargetPoints = [];
-
-       let mouse = { x: 0, y: 0, isDown: false };
-
-       function handleStart(x, y) { mouse.isDown = true; mouse.x = x; mouse.y = y; }
-       function handleMove(x, y) { if(mouse.isDown) { mouse.x = x; mouse.y = y; } }
-       function handleEnd() { mouse.isDown = false; }
-
-       canvas.addEventListener('mousedown', e => handleStart(e.clientX, e.clientY));
-       window.addEventListener('mousemove', e => handleMove(e.clientX, e.clientY));
-       window.addEventListener('mouseup', handleEnd);
-
-       canvas.addEventListener('touchstart', e => handleStart(e.touches[0].clientX, e.touches[0].clientY), {passive: false});
-       window.addEventListener('touchmove', e => {
-           e.preventDefault();
-           handleMove(e.touches[0].clientX, e.touches[0].clientY);
-       }, {passive: false});
-       window.addEventListener('touchend', handleEnd);
-
-
-       function resize() {
-           width = canvas.width = window.innerWidth;
-           height = canvas.height = window.innerHeight;
-           init();
-       }
-
-       function generateTreePoints() {
-           treeTargetPoints = [];
-           const centerX = width / 2;
-           const startY = height * 0.18;
-           const treeHeight = height * 0.58;
-           const endY = startY + treeHeight;
-
-           // Thân cây
-           for(let i = 0; i < 120; i++) {
-               treeTargetPoints.push({ x: centerX + (Math.random() - 0.5) * 50, y: endY + Math.random() * 60, color: '#8B4513' });
-           }
-           
-           // Tán lá
-           const levels = 1600;
-           for (let i = 0; i < levels; i++) {
-               const t = i / levels;
-               const y = startY + (t * treeHeight);
-               const spread = Math.pow(t, 0.8) * (treeHeight * 0.6);
-               const x = centerX + (Math.random() - 0.5) * spread * 2;
-               let color = '#2ecc71';
-               const r = Math.random();
-               if (r > 0.90) color = '#f1c40f'; else if (r > 0.96) color = '#e74c3c'; else if (r > 0.98) color = '#ffffff';
-               treeTargetPoints.push({ x, y, color });
-           }
-
-           // Ngôi sao
-           const starCenterX = centerX;
-           const starCenterY = startY - 50;
-           const outerRadius = 55;
-           const innerRadius = 22;
-           const points = 5;
-           
-           for (let i = 0; i < points * 2; i++) {
-               const angle = (Math.PI / points) * i - Math.PI / 2;
-               const radius = i % 2 === 0 ? outerRadius : innerRadius;
-               const targetX = starCenterX + Math.cos(angle) * radius;
-               const targetY = starCenterY + Math.sin(angle) * radius;
-
-               const particlesPerRay = 18;
-               for (let j = 0; j < particlesPerRay; j++) {
-                   const t = j / particlesPerRay;
-                   const x = starCenterX * (1-t) + targetX * t;
-                   const y = starCenterY * (1-t) + targetY * t;
-                   let color = t < 0.3 ? '#ffffff' : (t < 0.6 ? '#fffac2' : '#FFD700');
-                   treeTargetPoints.push({
-                       x: x + (Math.random() - 0.5) * 6,
-                       y: y + (Math.random() - 0.5) * 6,
-                       color: color,
-                       isStar: true
-                   });
-               }
-           }
-       }
-
-       class Particle {
-           constructor(target) {
-               this.targetX = target.x;
-               this.targetY = target.y;
-               this.color = target.color;
-               this.isStar = target.isStar || false;
-
-               this.x = Math.random() * width;
-               this.y = height + 20;
-               
-               this.baseSize = this.isStar ? Math.random() * 3 + 3 : Math.random() * 2 + 1;
-               this.size = this.baseSize;
-
-               this.ease = 0.02 + Math.random() * 0.02;
-               
-               // Mở rộng phạm vi nổ ra 1.5 lần màn hình để hạt bay "vút" qua màn hình nhanh hơn
-               this.explodeX = (Math.random() * width * 1.5) - (width * 0.25);
-               this.explodeY = (Math.random() * height * 1.5) - (height * 0.25);
-
-               if (this.isStar) {
-                   this.twinkleAngle = Math.random() * Math.PI * 2;
-                   this.twinkleSpeed = 0.03 + Math.random() * 0.05;
-               }
-           }
-
-           update() {
-               let destX, destY, currentEase;
-
-               if (mouse.isDown) {
-                   // --- BUNG LỤA TỐC ĐỘ CAO ---
-                   destX = this.explodeX;
-                   destY = this.explodeY;
-                   
-                   // Tăng tốc độ bay lên 0.2 (Rất nhanh)
-                   // Cộng thêm chút random để hạt bay không đều, nhìn tự nhiên hơn
-                   currentEase = 0.2 + Math.random() * 0.05;
-               } else {
-                   // --- HỘI TỤ VỀ CÂY ---
-                   destX = this.targetX;
-                   destY = this.targetY;
-                   currentEase = this.ease;
-               }
-
-               this.x += (destX - this.x) * currentEase;
-               this.y += (destY - this.y) * currentEase;
-
-               if (!mouse.isDown && Math.abs(destX - this.x) < 2) {
-                    this.x += (Math.random() - 0.5) * 0.8;
-                    this.y += (Math.random() - 0.5) * 0.8;
-               }
-
-               if (this.isStar) {
-                   this.twinkleAngle += this.twinkleSpeed;
-                   this.size = this.baseSize * (1 + Math.sin(this.twinkleAngle) * 0.3);
-               }
-           }
-
-           draw() {
-               ctx.beginPath();
-               ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-               ctx.fillStyle = this.color;
-               
-               if (mouse.isDown) {
-                    ctx.shadowBlur = 0; // Tắt blur khi bay nhanh để tối ưu hiệu năng và nét hơn
-               } else if (this.isStar) {
-                   ctx.shadowBlur = 35;
-                   ctx.shadowColor = '#FFD700';
-               } else {
-                   ctx.shadowBlur = 0;
-               }
-               
-               ctx.fill();
-               ctx.shadowBlur = 0;
-           }
-       }
-
-       function init() {
-           generateTreePoints();
-           particles = [];
-           treeTargetPoints.forEach(target => {
-               particles.push(new Particle(target));
-           });
-       }
-
-       function animate() {
-           // Khi bay nhanh, làm mờ background nhanh hơn (0.25) để đuôi hạt không bị dài ngoằng lộn xộn
-           ctx.fillStyle = mouse.isDown ? 'rgba(5, 5, 5, 0.25)' : 'rgba(5, 5, 5, 0.25)';
-           ctx.fillRect(0, 0, width, height);
-
-           particles.forEach(p => {
-               p.update();
-               p.draw();
-           });
-
-           requestAnimationFrame(animate);
-       }
-
-       window.addEventListener('resize', resize);
-       resize();
-       animate();
-
-   </script>
-
+    <div class="container">
+        <h1>🎄 Merry Christmas! 🎄</h1>
+        <div class="greeting">
+            Hello, <span class="custom-name" id="customName">Friend</span>!
+        </div>
+        <p>Wishing you a wonderful holiday season filled with joy, love, and happiness.</p>
+        <p>May your Christmas be as magical as the snow that falls from above.</p>
+        
+        <input type="text" id="nameInput" placeholder="Enter your name..." style="margin-top: 20px; padding: 10px; border: none; border-radius: 5px; font-size: 1em;">
+        <button onclick="updateGreeting()" style="margin-left: 10px; padding: 10px 20px; background: #FFD700; color: #000; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 1em;">Update Greeting</button>
+        
+        <script>
+            function updateGreeting() {
+                const nameInput = document.getElementById('nameInput').value;
+                const customNameElement = document.getElementById('customName');
+                if (nameInput.trim() !== '') {
+                    customNameElement.textContent = nameInput;
+                }
+            }
+            
+            // Allow Enter key to update greeting
+            document.getElementById('nameInput').addEventListener('keypress', function(event) {
+                if (event.key === 'Enter') {
+                    updateGreeting();
+                }
+            });
+        </script>
+    </div>
 </body>
 </html>
